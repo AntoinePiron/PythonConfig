@@ -32,8 +32,8 @@ def basic_conf():
                 console.write_cmd("no shutdown")
                 console.write_cmd("exit")
             print("Interface %s configured"%interface)
-        #console.write_cmd("int loopback 0")
-        #console.write_cmd("ip address 10.10.10.%s 255.255.255.255"%str(int(key)%5000+1))
+        console.write_cmd("int loopback 0")
+        console.write_cmd("ip address 10.10.10.%s 255.255.255.255"%str(int(key)%5000+1))
         console.write_cmd("end")
     print("All interfaces configured")
             
@@ -49,7 +49,8 @@ def init_ospf():
         console.write_cmd("router-id %s.%s.%s.%s"%(xval, xval, xval, xval))
         for interface in allInterfaces:
             if interface in data[key]:
-                console.write_cmd("network %s 255.255.255.248 area 0"%data[key][interface]['subnetwork'])
+                console.write_cmd("network %s 255.255.255.248 area %s"%(data[key][interface]['subnetwork'],data[key]['as_number']))
+        console.write_cmd("network 10.10.10.%s 255.255.255.255 area 0"%str(int(key)%5000+1))
         console.write_cmd("end")
 
 def enable_all():
@@ -66,6 +67,7 @@ def exit_all():
 
 def init_MPLS():
     for key, value in allConsoles.items():
+        if data[key]['CE'] : continue
         console = value["console"]
         node = value["node_info"]
         ports = node.ports
@@ -78,7 +80,19 @@ def init_MPLS():
                 console.write_cmd("int %s"%interface)
                 console.write_cmd("mpls ip")
                 console.write_cmd("exit")
-        console.write_cmd("exit")
+        console.write_cmd("end")
+
+def init_BGP():
+    for key, value in allConsoles.items():
+        console = value["console"]
+        console.write_cmd("conf t")
+        console.write_cmd("router bgp %s"%data[key]['as_number'])
+        console.write_cmd("bgp router-id %s.%s.%s.%s"%(int(key)%5000+1, int(key)%5000+1, int(key)%5000+1, int(key)%5000+1))
+        if 'neigbors' in data[key].keys():
+            for neighbor in data[key]['neigbors']:
+                info = data[key]['neigbors'][neighbor]
+                console.write_cmd("neighbor %s remote-as %s"%(info['ip'], info['as_number']))
+        console.write_cmd("end")
 
 if __name__ == "__main__":
     lab = connect_to_server()
@@ -99,5 +113,6 @@ if __name__ == "__main__":
     basic_conf()
     init_ospf()
     init_MPLS()
+    init_BGP()
     exit_all()
     
