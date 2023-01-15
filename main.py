@@ -44,13 +44,13 @@ def init_ospf():
         ports = node.ports
         allInterfaces = [port['name'] for port in ports if 'FastEthernet' not in port['name']]
         console.write_cmd("conf t")
-        console.write_cmd("router ospf 100")
+        console.write_cmd("router ospf %s"%(str(100+data[key]['as_number'])))
         xval = int(key)%5000+1
         console.write_cmd("router-id %s.%s.%s.%s"%(xval, xval, xval, xval))
         for interface in allInterfaces:
             if interface in data[key]:
                 console.write_cmd("network %s 255.255.255.248 area %s"%(data[key][interface]['subnetwork'],data[key]['as_number']))
-        console.write_cmd("network 10.10.10.%s 255.255.255.255 area 0"%str(int(key)%5000+1))
+        console.write_cmd("network 10.10.10.%s 255.255.255.255 area %s"%(str(int(key)%5000+1),data[key]['as_number']))
         console.write_cmd("end")
 
 def enable_all():
@@ -84,6 +84,9 @@ def init_MPLS():
 
 def init_BGP():
     for key, value in allConsoles.items():
+        node = value["node_info"]
+        ports = node.ports
+        allInterfaces = [port['name'] for port in ports if 'FastEthernet' not in port['name']]
         console = value["console"]
         console.write_cmd("conf t")
         console.write_cmd("router bgp %s"%data[key]['as_number'])
@@ -92,6 +95,12 @@ def init_BGP():
             for neighbor in data[key]['neigbors']:
                 info = data[key]['neigbors'][neighbor]
                 console.write_cmd("neighbor %s remote-as %s"%(info['ip'], info['as_number']))
+                console.write_cmd("address-family ipv4 unicast")
+                console.write_cmd("neighbor %s activate"%info['ip'])
+                console.write_cmd("exit")
+            for interface in allInterfaces:
+                if interface in data[key] and not data[key][interface]['edgeInterface']:
+                    console.write_cmd("network %s mask 255.255.255.248"%data[key][interface]['subnetwork'])
         console.write_cmd("end")
 
 if __name__ == "__main__":
@@ -104,7 +113,11 @@ if __name__ == "__main__":
             cons.write_cmd("no")
         exit(0)
 
+    
     for node in lab.nodes:
+        if 'PC' in node.name:
+            continue
+        print(node.name)
         allConsoles[("%s"%node.console)] = {"console" : Console(node.console), "node_info" : node}
     if len(allConsoles) < 0:
         raise Exception("No consoles found")
