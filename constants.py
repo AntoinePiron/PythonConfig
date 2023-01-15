@@ -26,7 +26,14 @@ data = {
                 'ip' : '192.168.12.2',
                 'as_number' : 2,
             }
-        }
+        },
+        'vrf': {
+            'client1': {
+                'interface' : 'GigabitEthernet3/0',
+                'rt' : '100:100',
+                'rd' : '100:100',
+            }
+        },
     }, 
     '5001': {
         'GigabitEthernet1/0' : {
@@ -188,7 +195,14 @@ data = {
                 'ip' : '192.168.13.2',
                 'as_number' : 3,
             }
-        }
+        },
+        'vrf': {
+            'client1': {
+                'interface' : 'GigabitEthernet3/0',
+                'rt' : '100:100',
+                'rd' : '100:100',
+            }
+        },
     }, 
     '5007': {
         'GigabitEthernet1/0' : {

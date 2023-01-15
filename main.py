@@ -81,6 +81,30 @@ def init_MPLS():
                 console.write_cmd("mpls ip")
                 console.write_cmd("exit")
         console.write_cmd("end")
+        
+def init_VRF():
+    for key, value in allConsoles.items():
+        console = value["console"]
+        console.write_cmd("conf t")
+        if 'vrf' in data[key].keys():
+            console.write_cmd("ip routing")
+            for vrfkey, vrfvalue in data[key]['vrf'].items():
+                print(vrfvalue)
+                console.write_cmd("ip vrf %s"%vrfkey)
+                console.write_cmd("rd %s"%vrfvalue['rd'])
+                console.write_cmd("route-target both %s"%vrfvalue['rt'])
+                console.write_cmd("exit")
+                interface = data[key]['vrf'][vrfkey]['interface']
+                console.write_cmd("int %s"%interface)
+                console.write_cmd("ip vrf forwarding %s"%vrfkey)
+                console.write_cmd("ip address %s %s"%(data[key][interface]['ip'], data[key][interface]['mask']))
+                console.write_cmd("no shutdown")
+                console.write_cmd("exit")
+                port_client = list(data[key]['neigbors'].keys())[0]
+                ip_client = data[key]['neigbors'][port_client]['ip']
+                console.write_cmd("ip route vrf %s 10.10.10.%s 255.255.255.255 %s"%(vrfkey,str(int(port_client)%5000+1),ip_client))
+                
+
 
 def init_BGP():
     for key, value in allConsoles.items():
@@ -126,6 +150,7 @@ if __name__ == "__main__":
     basic_conf()
     init_ospf()
     init_MPLS()
-    init_BGP()
+    init_VRF()
+    #init_BGP()
     exit_all()
     
