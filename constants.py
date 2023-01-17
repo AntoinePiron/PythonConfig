@@ -27,6 +27,7 @@ data = {
                 'as_number' : 2,
             }
         },
+        'neigbors_bgp' : ['5006'],
         'vrf': {
             'client1': {
                 'interface' : 'GigabitEthernet3/0',
@@ -50,7 +51,7 @@ data = {
         },
         'as_number' : 1,
         'CE': False,
-        'edge': True,
+        'edge': False,
     }, 
     '5002': {
         'GigabitEthernet1/0' : {
@@ -196,6 +197,7 @@ data = {
                 'as_number' : 3,
             }
         },
+        'neigbors_bgp' : ['5000'],
         'vrf': {
             'client1': {
                 'interface' : 'GigabitEthernet3/0',
@@ -219,7 +221,7 @@ data = {
         },
         'as_number' : 1,
         'CE': False,
-        'edge': True,
+        'edge': False,
     }, 
     '5008' :{
         'GigabitEthernet1/0' : {
