@@ -35,9 +35,9 @@ def basic_conf():
         console.write_cmd("int loopback 0")
         console.write_cmd("ip address 10.10.10.%s 255.255.255.255"%str(int(key)%5000+1))
         console.write_cmd("exit")
-        if data[key]['CE']:
-            for _, neivalue in data[key]['neigbors'].items():
-                console.write_cmd("ip route 0.0.0.0 0.0.0.0 %s"%neivalue['ip'])
+        #if data[key]['CE']:
+            #for _, neivalue in data[key]['neigbors'].items():
+                #console.write_cmd("ip route 0.0.0.0 0.0.0.0 %s"%neivalue['ip'])
         console.write_cmd("end")
     print("All interfaces configured")
             
@@ -105,7 +105,7 @@ def init_VRF():
                 console.write_cmd("exit")
                 port_client = list(data[key]['neigbors'].keys())[0]
                 ip_client = data[key]['neigbors'][port_client]['ip']
-                console.write_cmd("ip route vrf %s 10.10.10.%s 255.255.255.255 %s"%(vrfkey,str(int(port_client)%5000+1),ip_client))
+                #console.write_cmd("ip route vrf %s 10.10.10.%s 255.255.255.255 %s"%(vrfkey,str(int(port_client)%5000+1),ip_client))
         console.write_cmd("end")
                 
 
@@ -129,8 +129,28 @@ def init_BGP():
                 console.write_cmd("address-family ipv4 vrf %s"%vrfkey)
                 console.write_cmd("redistribute static")
                 console.write_cmd("redistribute connected")
+                for keyBgp, valueBgp in data[key]['neigbors'].items():
+                    console.write_cmd("neighbor %s remote-as %s"%(valueBgp['ip'],valueBgp['as_number']))
+                    console.write_cmd("neighbor %s activate"%valueBgp['ip'])
                 console.write_cmd("exit")
         console.write_cmd("end")
+    for key, value in allConsoles.items():
+        if not data[key]['CE']: continue
+        console = value["console"]
+        console.write_cmd("conf t")
+        console.write_cmd("router bgp %s"%data[key]['as_number'])
+        for keyBgp, valueBgp in data[key]['neigbors'].items():
+            console.write_cmd("neighbor %s remote-as %s"%(valueBgp['ip'],valueBgp['as_number']))
+            console.write_cmd("neighbor %s activate"%valueBgp['ip'])
+        ports = value["node_info"].ports
+        allInterfaces = [port['name'] for port in ports if 'FastEthernet' not in port['name']]
+        for interface in allInterfaces:
+            if interface in data[key]:
+                if data[key][interface]['edgeInterface']: continue
+                console.write_cmd("network %s mask %s"%(data[key][interface]['subnetwork'],data[key][interface]['mask']))
+        console.write_cmd("end")
+        
+        
             
 
 if __name__ == "__main__":
@@ -146,6 +166,8 @@ if __name__ == "__main__":
     
     for node in lab.nodes:
         if 'PC' in node.name:
+            continue
+        if node.console not in data.keys():
             continue
         print(node.name)
         allConsoles[("%s"%node.console)] = {"console" : Console(node.console), "node_info" : node}

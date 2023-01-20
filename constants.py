@@ -188,6 +188,12 @@ data = {
             'mask' : '255.255.255.248',
             'edgeInterface' : True,
         },
+        'GigabitEthernet4/0' : {
+            'ip' : '192.168.16.1',
+            'subnetwork' : '192.168.16.0',
+            'mask' : '255.255.255.248',
+            'edgeInterface' : True,
+        },
         'as_number' : 1,
         'CE': False,
         'edge': True,
@@ -195,6 +201,10 @@ data = {
             '5009' : {
                 'ip' : '192.168.13.2',
                 'as_number' : 3,
+            },
+            '5015': {
+                'ip' : '192.168.16.2',
+                'as_number' : 4,
             }
         },
         'neigbors_bgp' : ['5000'],
@@ -203,7 +213,12 @@ data = {
                 'interface' : 'GigabitEthernet3/0',
                 'rt' : '100:100',
                 'rd' : '100:100',
-            }
+            },
+            'client2': {
+                'interface' : 'GigabitEthernet4/0',
+                'rt' : '200:200',
+                'rd' : '200:200',
+            },
         },
     }, 
     '5007': {
@@ -265,6 +280,29 @@ data = {
         'neigbors' : {
             '5006' : {
                 'ip' : '192.168.13.1',
+                'as_number' : 1,
+            }
+        }
+    },
+    '5015' :{
+        'GigabitEthernet1/0' : {
+            'ip' : '192.168.16.2',
+            'subnetwork' : '192.168.16.0',
+            'mask' : '255.255.255.248',
+            'edgeInterface' : True,
+        },
+        'GigabitEthernet2/0' : {
+            'ip' : '192.168.17.2',
+            'subnetwork' : '192.168.17.0',
+            'mask' : '255.255.255.248',
+            'edgeInterface' : False,
+        },
+        'as_number': 4,
+        'CE': True,
+        'edge': True,
+        'neigbors' : {
+            '5006' : {
+                'ip' : '192.168.16.1',
                 'as_number' : 1,
             }
         }
