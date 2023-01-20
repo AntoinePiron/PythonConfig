@@ -70,8 +70,8 @@ data = {
         'vrf': {
             'client2': {
                 'interface' : 'GigabitEthernet3/0',
-                'rt' : '100:100',
-                'rd' : '100:100',
+                'rt' : '200:200',
+                'rd' : '200:200',
             }
         },
     }, 
