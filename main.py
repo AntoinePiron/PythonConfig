@@ -1,8 +1,7 @@
 from gns3fy import Gns3Connector, Project
-from tabulate import tabulate
-from json import dumps
 from util import Console
 from constants import data
+from constants import PC
 import sys
 
 
@@ -104,8 +103,6 @@ def init_VRF():
                 console.write_cmd("no shutdown")
                 console.write_cmd("exit")
                 port_client = list(data[key]['neigbors'].keys())[0]
-                ip_client = data[key]['neigbors'][port_client]['ip']
-                #console.write_cmd("ip route vrf %s 10.10.10.%s 255.255.255.255 %s"%(vrfkey,str(int(port_client)%5000+1),ip_client))
         console.write_cmd("end")
                 
 
@@ -130,8 +127,9 @@ def init_BGP():
                 console.write_cmd("redistribute static")
                 console.write_cmd("redistribute connected")
                 for keyBgp, valueBgp in data[key]['neigbors'].items():
-                    console.write_cmd("neighbor %s remote-as %s"%(valueBgp['ip'],valueBgp['as_number']))
-                    console.write_cmd("neighbor %s activate"%valueBgp['ip'])
+                    if(vrfkey ==valueBgp['vrf']):
+                        console.write_cmd("neighbor %s remote-as %s"%(valueBgp['ip'],valueBgp['as_number']))
+                        console.write_cmd("neighbor %s activate"%valueBgp['ip'])
                 console.write_cmd("exit")
         console.write_cmd("end")
     for key, value in allConsoles.items():
@@ -163,15 +161,23 @@ if __name__ == "__main__":
             cons.write_cmd("no")
         exit(0)
 
+    if(len(sys.argv) == 2 and sys.argv[1] == "pc"):
+        for node in lab.nodes:
+            if 'PC' in node.name:
+                cons = Console(node.console)
+                cons.write_cmd(PC[node.name])
+        exit(0)
     
     for node in lab.nodes:
         if 'PC' in node.name:
             continue
-        if node.console not in data.keys():
-            continue
         print(node.name)
-        allConsoles[("%s"%node.console)] = {"console" : Console(node.console), "node_info" : node}
-    if len(allConsoles) < 0:
+        try:
+            print(data[str(node.console)])
+            allConsoles[("%s"%node.console)] = {"console" : Console(node.console), "node_info" : node}
+        except:
+            print("No data for %s"%node.name)
+    if len(allConsoles) == 0:
         raise Exception("No consoles found")
     print("All consoles initialized")
     enable_all()
